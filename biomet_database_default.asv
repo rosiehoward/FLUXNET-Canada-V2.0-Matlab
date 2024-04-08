@@ -1,0 +1,4 @@
+function pthOut = biomet_database_default
+% Use relative path
+[pthOut,~,~] = fullfile(pwd); 
+
