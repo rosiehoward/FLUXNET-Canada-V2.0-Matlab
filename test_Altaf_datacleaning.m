@@ -10,10 +10,12 @@
 %       newProject\Sites
 %
 %
-kill
 
-% make sure you are in project (PI) directory)
-% addpath(genpath(pwd));
+%****************************************
+% make sure you are in MATLAB directory *
+%****************************************
+
+kill
 
 yearIn = 2023;
 siteID = 'TPAg';
@@ -65,9 +67,9 @@ tv = read_bor(fullfile(pthOutEC,'clean_tv'),8,[],yearIn);
 % convert time vector to Matlab's datetime
 tv_dt = datetime(tv,'ConvertFrom','datenum');
 
-make_plot = 0;  % 0 = no, 1 = yes
+make_plot = 1;  % 0 = no, 1 = yes
 saveplot = 0;   % 0 = no, 1 = yes
-dataType = 'Flux';
+dataType = 'Met';
 
 if strcmp(dataType,'Flux')
     pthOut = pthOutEC;
@@ -142,6 +144,11 @@ clear pthOut
 % Create an ini file then run fr_automated_cleaning
 % 
 fr_automated_cleaning(yearIn,siteID,[1]); %#ok<NBRAK2>
+
+%% Plot data to compare
+
+dbPath = biomet_database_default; %#ok<*UNRCH>
+compareStages(dbPath,siteID,yearIn);
 
 %% Read and plot
 

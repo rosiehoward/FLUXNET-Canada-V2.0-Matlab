@@ -29,9 +29,10 @@ NOTE: if you already have matlab you can install the toolboxes using the “Add-
  * First clone Biomet.net to your `C:` drive (PC) or `/Users/youruser` (mac), or a subfolder of your choosing. Important: make a note of this filepath as you will need it in step 3 below. 
  * To clone a directory from the terminal:
  1. Make sure you are in the correct directory, i.e., the one where you wish the repository to live (for more information on how to change directories on your PC [see here](https://www.lifewire.com/change-directories-in-command-prompt-5185508) and on your mac [see here](https://appletoolbox.com/navigate-folders-using-the-mac-terminal/)).
- 2. Clone the directory by following [these instructions](https://www.educative.io/answers/how-to-clone-a-git-repository-using-the-command-line).
- 3. Clone the [UBC PC Setup repository](https://github.com/ubc-micromet/UBC_PC_Setup-template) and follow the instructions from the `README` file.
- 4. Keep your `Biomet.net` code up to date by periodically by using `git pull` (Note: first make sure you are in the correct directory).
+ 2. Clone the repository into this directory by following [these instructions](https://www.educative.io/answers/how-to-clone-a-git-repository-using-the-command-line).
+ 
+ * Next, clone the [UBC PC Setup repository](https://github.com/ubc-micromet/UBC_PC_Setup-template) and follow the instructions from the `README` file.
+ * Keep your `Biomet.net` code up to date by periodically by using `git pull` (Note: first make sure you are in the correct directory).
 
 **NOTE**: Do NOT save any of your files into `Biomet.net` folder!
 
