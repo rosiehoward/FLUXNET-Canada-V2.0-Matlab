@@ -67,7 +67,7 @@ tv = read_bor(fullfile(pthOutEC,'clean_tv'),8,[],yearIn);
 % convert time vector to Matlab's datetime
 tv_dt = datetime(tv,'ConvertFrom','datenum');
 
-make_plot = 1;  % 0 = no, 1 = yes
+make_plot = 0;  % 0 = no, 1 = yes
 saveplot = 0;   % 0 = no, 1 = yes
 dataType = 'Met';
 
@@ -214,10 +214,19 @@ fr_automated_cleaning(yearIn,siteID,[1 2]);
 dataType = 'Clean/SecondStage';
 % dataType = 'Clean\SecondStage';
 pthSecondStageClean = fullfile(dbPath,'yyyy',siteID,dataType);
-RH_SecondStage =  read_bor(fullfile(pthSecondStageClean,'RH_1_1_1'),[],[],yearIn);
+
+% RH_1_1_1 = read_bor(fullfile(pthFirstStageClean,'RH_1_1_1'),[],[],yearIn);
+% RH_SecondStage =  read_bor(fullfile(pthSecondStageClean,'RH_1_1_1'),[],[],yearIn);
+
+% TA_1_1_1 = read_bor(fullfile(pthFirstStageClean,'TA_1_1_1'),[],[],yearIn);
+% TA_SecondStage = read_bor(fullfile(pthSecondStageClean,'TA_1_1_1'),[],[],yearIn);
 
 figure(3)
-plot(tv_dt,RH_1_1_1,'o',tv_dt,RH_SecondStage,'o')
+plot(tv_dt,TA_SecondStage,'.')
+hold on
+plot(tv_dt,TA_1_1_1,'.');
+plot(tv_dt,T_SONIC_1_1_1,'.')
+
 title('RH')
 legend('RH 1^{st} Stage','RH 2^{nd} Stage')
 zoom on
