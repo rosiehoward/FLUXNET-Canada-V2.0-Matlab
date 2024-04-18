@@ -9,7 +9,6 @@
 %       newProject\Database
 %       newProject\Sites
 %
-%
 
 %****************************************
 % make sure you are in MATLAB directory *
@@ -18,21 +17,69 @@
 kill
 
 yearIn = 2023;
-siteID = 'TPAg';
+siteID = 'TPD_PPT';
 
-ECpath  = fullfile(biomet_sites_default,siteID,[siteID '_Raw_Cleaned'],sprintf('%s_CPEC_clean_%d.mat',siteID,yearIn));
-METpath = fullfile(biomet_sites_default,siteID,[siteID '_Raw_Cleaned'],sprintf('%s_master_%d.mat',siteID,yearIn));
+if strcmp(siteID,'TP_PPT') | strcmp(siteID,'TPD_PPT')
+    METpath = fullfile(biomet_sites_default,siteID,[siteID '_Raw_Cleaned'],sprintf('%s_master_%d.mat',siteID,yearIn));
+    METpathPrevYear = fullfile(biomet_sites_default,siteID,[siteID '_Raw_Cleaned'],sprintf('%s_master_%d.mat',siteID,yearIn-1));
+else
+    ECpath  = fullfile(biomet_sites_default,siteID,[siteID '_Raw_Cleaned'],sprintf('%s_CPEC_clean_%d.mat',siteID,yearIn));
+    METpath = fullfile(biomet_sites_default,siteID,[siteID '_Raw_Cleaned'],sprintf('%s_master_%d.mat',siteID,yearIn));
+end
+
+% tmp_EC = load(ECpath);
+% eval([siteID '_EC = convert_data(tmp_EC.master);'])
+% TPAg_EC = convert_data(tmp_EC.master);
+tmp_Met = load(METpath);
+eval([siteID '_Met = convert_data(tmp_Met.master);'])
+% TPAg_Met  = convert_data(tmp_Met.master);
+
+% Altaf's data is in GMT, need to also load yearIn-1 (if it exists) to append first
+% 10 datapoints (5 hours) and remove last 10 datapoints
+% ECpathPrevYear  = fullfile(biomet_sites_default,siteID,[siteID '_Raw_Cleaned'],sprintf('%s_CPEC_clean_%d.mat',siteID,yearIn-1));
+% METpathPrevYear = fullfile(biomet_sites_default,siteID,[siteID '_Raw_Cleaned'],sprintf('%s_master_%d.mat',siteID,yearIn-1));
+
+% tmp_EC_PrevYear = load(ECpathPrevYear);
+% eval([siteID '_EC_PrevYear = convert_data(tmp_EC_PrevYear.master);']);
+% TPAg_EC_PrevYear = convert_data(tmp_EC_PrevYear.master);
+tmp_Met = load(METpathPrevYear);
+eval([siteID '_Met_PrevYear = convert_data(tmp_Met.master);'])
+% TPAg_Met_PrevYear = convert_data(tmp_Met.master);
+
+% convert to table, concatenate, then back to struct
+% TPAg_EC_PrevYearArray = struct2array(TPAg_EC_PrevYear);
+% TPAg_EC_Array = struct2array(TPAg_EC);
+eval([siteID '_Met_PrevYearArray = struct2array(' siteID '_Met_PrevYear);']);
+eval([siteID '_Met_Array = struct2array(' siteID '_Met);']);
+% TPAg_Met_PrevYearArray = struct2array(TPAg_Met_PrevYear);
+% TPAg_Met_Array = struct2array(TPAg_Met);
+
+eval(['tmp_' siteID '_Met = cat(1,' siteID '_Met_PrevYearArray(end-10+1:end,:),' siteID '_Met_Array(1:17510,:));']);
+eval(['tmp_Met.master.data = tmp_' siteID '_Met;']);
+% eval(['tmp_' siteID '_EC = cat(1,' siteID '_EC_PrevYearArray(end-10+1:end,:),' siteID '_EC_Array(1:17510,:));']);
+% eval(['tmp_EC.master.data = tmp_' siteID '_EC;']);
+% tmp_TPAg_Met = cat(1,TPAg_Met_PrevYearArray(end-10+1:end,:),TPAg_Met_Array(1:17510,:));
+% tmp_Met.master.data = tmp_TPAg_Met;
+% tmp_TPAg_EC = cat(1,TPAg_EC_PrevYearArray(end-10+1:end,:),TPAg_EC_Array(1:17510,:));
+% tmp_EC.master.data = tmp_TPAg_EC;
+clear *PrevYear* *Array*
+
+% eval([siteID '_EC = convert_data(tmp_EC.master);']);
+eval([siteID '_Met  = convert_data(tmp_Met.master);']);
+% TPAg_EC = convert_data(tmp_EC.master);
+% TPAg_Met  = convert_data(tmp_Met.master);
 
 % Create TimeVector
+% GMToffset = 5/24;  % Altaf's raw data is in GMT time
+% TimeVector = fr_round_time(datenum(yearIn,1,1,0,30,0):1/48:datenum(yearIn+1,1,1,0,0,0))' - GMToffset; %#ok<DATNM>
 TimeVector = fr_round_time(datenum(yearIn,1,1,0,30,0):1/48:datenum(yearIn+1,1,1,0,0,0))'; %#ok<DATNM>
 
-tmp = load(ECpath);
-TPAg_EC = convert_data(tmp.master);
-TPAg_EC.TimeVector = TimeVector;
-tmp = load(METpath);
-TPAg_Met  = convert_data(tmp.master);
-TPAg_Met.TimeVector = TimeVector;
-clear tmp TimeVector
+% eval([siteID '_EC.TimeVector = TimeVector;']);
+eval([siteID '_Met.TimeVector = TimeVector;']);
+% TPAg_EC.TimeVector = TimeVector;
+% TPAg_Met.TimeVector = TimeVector;
+
+clear tmp* TimeVector
 
 return
 
@@ -49,26 +96,26 @@ timeUnit = '30min';
 missingPointValue = NaN;
 
 % Process Flux data
-dataType = 'Flux';
-pthOutEC = fullfile(dbPath,'yyyy',siteID,dataType);   
+% dataType = 'Flux';
+% pthOutEC = fullfile(dbPath,'yyyy',siteID,dataType);   
 % [structIn,dbFileNames, dbFieldNames,errCode] = db_struct2database(TPAg_EC,pthOutEC,verbose_flag,excludeSubStructures,timeUnit,missingPointValue,structType,1);
 
 % Process Met data
 dataType = 'Met';
 pthOutMet = fullfile(dbPath,'yyyy',siteID,dataType);   
-% [structIn,dbFileNames, dbFieldNames,errCode] = db_struct2database(TPAg_Met,pthOutMet,verbose_flag,excludeSubStructures,timeUnit,missingPointValue,structType,1);
+eval(['[structIn,dbFileNames, dbFieldNames,errCode] = db_struct2database(' siteID '_Met,pthOutMet,verbose_flag,excludeSubStructures,timeUnit,missingPointValue,structType,1);']);
 
 
 %% Load and plot one or more years of data
 
 % load time vector
-tv = read_bor(fullfile(pthOutEC,'clean_tv'),8,[],yearIn);
+tv = read_bor(fullfile(pthOutMet,'clean_tv'),8,[],yearIn);
 
 % convert time vector to Matlab's datetime
 tv_dt = datetime(tv,'ConvertFrom','datenum');
 
-make_plot = 0;  % 0 = no, 1 = yes
-saveplot = 0;   % 0 = no, 1 = yes
+make_plot = 1;  % 0 = no, 1 = yes
+saveplot = 1;   % 0 = no, 1 = yes
 dataType = 'Met';
 
 if strcmp(dataType,'Flux')
@@ -95,7 +142,7 @@ if make_plot == 1
         end
         % load data
         var = read_bor(fullfile(pthOut,value),[],[],yearIn);
-        AirTemp_AbvCnpy = read_bor(fullfile(pthOutMet,'AirTemp_AbvCnpy'),[],[],yearIn);
+        % AirTemp_AbvCnpy = read_bor(fullfile(pthOutMet,'AirTemp_AbvCnpy'),[],[],yearIn);
 
         % show data
         % figure(1)
@@ -114,7 +161,7 @@ if make_plot == 1
 
         % save plot
         if saveplot == 1
-            savepath = ['/Users/rosiehoward/Documents/UBC/Micromet/Matlab/local_personal_plots/Altaf_data/' siteID '/' dataType '/'];
+            savepath = ['/Users/rosiehoward/Documents/UBC/Micromet/Matlab/local_personal_plots/Altaf_data/' siteID '/' num2str(yearIn) '/' dataType '/'];
             filetext = value;
             type = 'png';
             im_res = 200;

@@ -1,19 +1,44 @@
-function compareStages(path,site,year)
+% function compareStages(path,site,year)
 % compare plots between data cleaning stages
 %
 % arguments:
-%       path: path to Database
-%       site: siteID
-%       year: yearIn
+%       path:   path to Database
+%       site:   siteID
+%       year:   yearIn
+%       stage:  stage to compare up to (first or second)
 %
 % Rosie Howard
 % 8 April 2024
 
+clear;
+% set database path, site ID, and year
+dbpath = biomet_database_default;
+siteID = 'TPAg';
+yearIn = 2023;
+freq = 0.5; % hours
+
+% set other manual parameters
+stage = 'First';   % select stage to compare up to (Zero, First, Second; 
+                    % cleaning must have been done up to this stage)
+
+% look at traces/histograms/scatterplots
+makeStandardPlot = 0;   % 1 = yes, 0 = no
+saveStandardPlot = 1;   % 1 = yes, 0 = no
+
+% look at stats
+stats = 0;         
+saveStatsPlots = 1;
+
+% look at daily distributions
+dailyDist = 1;  
+saveDistPlots = 1;
+
+varMapFile = 'VariableMapping.xlsx';
+localRootPath = '../../Matlab/local_personal_plots/Altaf_data/';
+
 % load variable mapping spreadsheet (must create this first)
 % ****later can come from INI files but this works for now****
-varMapFile = 'VariableMapping.xlsx';
-varMapPath = ['../../Matlab/local_personal_plots/Altaf_data/' site '/'];
-varMap = readtable([varMapPath varMapFile]);
+varMap = readtable(fullfile(localRootPath,siteID,varMapFile));
 [numVar,~] = size(varMap);
 
 % select stages to compare (this needs to be handled much better)
@@ -21,101 +46,148 @@ stageZero = varMap.Properties.VariableNames{4};    % original data
 stageOne = varMap.Properties.VariableNames{5};    % First stage
 stageTwo = varMap.Properties.VariableNames{6};      % Second stage
 
-saveplot = 0;   % = yes, 0 = no (add as input arg?)
-makeplot = 1;   % = yes, 0 = no (add as input arg?)
-stats = 1;      % look at stats    
+% is it a leap year?
+% use Biomet function "leapyear"
+leap = leapyear(yearIn);
 
-% loop over variables
-for i = 1:numVar
-    if varMap.IncludeInPlotting(i) == 1     % plot this variable
-        disp(['Looking at ' varMap.OriginalName{i} '...']);
-        if strcmp(varMap.Site{i},site) == 0
+if leap
+    fprintf('\n');
+    fprintf([num2str(yearIn) ' is a leap year\n']);
+    daysPerYear = 366;
+else
+    fprintf('\n');
+    fprintf([num2str(yearIn) ' is not a leap year\n']);
+    daysPerYear = 365;
+end
+
+%% loop over variables (comparing across stages)
+a = find(varMap.IncludeInPlotting == 1);
+
+for i = 1:length(a)
+    if varMap.IncludeInPlotting(a(i)) == 1     % plot this variable
+        fprintf('\n');
+        fprintf(['Looking at ' varMap.OriginalName{a(i)} '...\n']);
+        if strcmpi(varMap.Site{a(i)},siteID) == 0
             % need path to data for alternative site
-            dataPathZero = fullfile([path '/yyyy/' varMap.Site{i} '/' varMap.MetOrFlux{i}]);
-            dataPathOne = fullfile([path '/yyyy/' site '/' varMap.MetOrFlux{i} '/Clean']);
-            dataPathTwo = fullfile([path '/yyyy/' site '/Clean/SecondStage']);
+            dataPathZero = fullfile([dbpath '/yyyy/' varMap.Site{a(i)} '/' varMap.MetOrFlux{a(i)}]);
+            dataPathOne = fullfile([dbpath '/yyyy/' varMap.Site{a(i)} '/' varMap.MetOrFlux{a(i)} '/Clean']);
+            dataPathTwo = fullfile([dbpath '/yyyy/' varMap.Site{a(i)} '/Clean/SecondStage']);
         else
             % need path to data for CURRENT site
-            dataPathZero = fullfile([path '/yyyy/' site '/' varMap.MetOrFlux{i}]);
-            dataPathOne = fullfile([path '/yyyy/' site '/' varMap.MetOrFlux{i} '/Clean']);
-            dataPathTwo = fullfile([path '/yyyy/' site '/Clean/SecondStage']);
+            dataPathZero = fullfile([dbpath '/yyyy/' siteID '/' varMap.MetOrFlux{a(i)}]);
+            dataPathOne = fullfile([dbpath '/yyyy/' siteID '/' varMap.MetOrFlux{a(i)} '/Clean']);
+            dataPathTwo = fullfile([dbpath '/yyyy/' siteID '/Clean/SecondStage']);
         end
-        
 
         % load time vector
-        pthOut = fullfile(path,'yyyy',site,varMap.MetOrFlux{i});
-        tv = read_bor(fullfile(pthOut,'clean_tv'),8,[],year);
+        pthOut = fullfile(dbpath,'yyyy',siteID,varMap.MetOrFlux{a(i)});
+        tv = read_bor(fullfile(pthOut,'clean_tv'),8,[],yearIn);
         % convert time vector to Matlab's datetime
         tv_dt = datetime(tv,'ConvertFrom','datenum');
 
         % load variables
-        varname1 = eval(['varMap.' stageZero '{i}']); %#ok<EVLDOT>
-        var1 = read_bor(fullfile(dataPathZero,varname1),[],[],year);
-        varname2 = eval(['varMap.' stageOne '{i}']); %#ok<EVLDOT>
-        var2 = read_bor(fullfile(dataPathOne,varname2),[],[],year);
-        varname3 = eval(['varMap.' stageTwo '{i}']); %#ok<EVLDOT>
-        var3 = read_bor(fullfile(dataPathTwo,varname3),[],[],year);
-        if strcmp(varname2,varname3)
-            varname3 = [varname3 '_SecondStage']; %#ok<AGROW>
+        varname0 = eval(['varMap.' stageZero '{a(i)}']); %#ok<EVLDOT>
+        var0 = read_bor(fullfile(dataPathZero,varname0),[],[],yearIn);
+        varname1 = eval(['varMap.' stageOne '{a(i)}']); %#ok<EVLDOT>
+        var1 = read_bor(fullfile(dataPathOne,varname1),[],[],yearIn);
+        if strcmpi(stage,'Second')
+            varname2 = eval(['varMap.' stageTwo '{a(i)}']); %#ok<UNRCH,EVLDOT>
+            var2 = read_bor(fullfile(dataPathTwo,varname2),[],[],yearIn);
+            if strcmpi(varname1,varname2)
+                varname2 = [varname2 '_SecondStage']; %#ok<AGROW>
+            end
         end
-
-        %% plot variables
-        if makeplot == 1
-            clf;
-            % close;
-            % figure('units','centimeters','outerposition',[0 0 40 40]);
-            set(gcf,'color','white');
-
-            %traces
-            subplot(3,2,1:2);
-            plot(tv_dt,var1,'.','LineWidth',2)
-            hold on
-            plot(tv_dt,var2,'.','LineWidth',2)
-            % legend(varname1,varname2);
-            plot(tv_dt,var3,'.','LineWidth',2)
-            legend(varname1,varname2,varname3);
-            % ylabel('degC')
-            zoom on
-            grid on
-
-            % histograms
-            subplot(3,2,3);
-            histogram(var1);
-            hold on
-            histogram(var2);
-            histogram(var3);
-            legend(varname1,varname2,varname3);
-            grid on
-
-            % scatterplots
-            subplot(3,2,4);
-            plot(var1,var2,'x');
-            hold on
-            plot(var2,var3,'.');
-            xlabel(varname1);
-            ylabel(varname2);
-            grid on
-            maxVal = max(max(var1),max(var2));
-            minVal = min(min(var1),min(var2));
-            k = floor(minVal):ceil(maxVal);
-            plot(k,k,'--');
-            legend('zero-one','one-two','1:1',Location='northwest')
-
-            % different plot
-            subplot(3,2,5:6);
-            plot(tv_dt,var1 - var2,'.');
-            hold on
-            plot(tv_dt,var1 - var3,'.');
-            plot(tv_dt,var2 - var3,'.');
-            legend('Diff')
-            grid on
-
-            sgtitle([site ' - Stages Comparison']);
-
+        
+        % concat variables for easy argument passing
+        if strcmpi(stage,'First')
+            n = 2;
+            vars = cat(2,var0,var1);
+            varnames = {varname0,varname1};
+        elseif strcmpi(stage,'Second')
+            n = 3;
+            vars = cat(2,var0,var1,var2);
+            varnames = {varname0,varname1,varname2};
+        end
+        
+        %*********************************
+        % plot standard variables
+        if makeStandardPlot == 1
+            fprintf('\n');
+            fprintf('Plotting standard comparisons between stages...\n');
+            plotStandardComparison(siteID,tv_dt,vars,varnames);
             % save plot
-            if saveplot == 1
-                savepath = [varMapPath num2str(year) '/' varMap.MetOrFlux{i} '/Clean/'];
-                filetext = varname3;
+            if saveStandardPlot == 1
+                if n == 2
+                    fprintf('\n');
+                    fprintf(['Saving ' varnames{1} ' plot...\n']);
+                    savepath = [localRootPath siteID '/' num2str(yearIn) '/' varMap.MetOrFlux{a(i)} '/Clean/'];
+                    filetext = varnames{2};
+                elseif n == 3
+                    fprintf('\n');
+                    fprintf(['Saving ' varnames{1} ' plot...\n']);
+                    savepath = [localRootPath siteID '/' num2str(yearIn) '/Clean/SecondStage/'];
+                    filetext = varnames{3};
+                end
+                type = 'png';
+                im_res = 200;
+                str = ['print -d' type ' -r' num2str(im_res) ' ' savepath filetext '.' type];
+                eval(str);
+            end
+        end
+        %*********************************
+
+        %*********************************
+        % calculate and plot stats
+        if stats == 1
+            fprintf('\n');
+            fprintf('Calculating stats and doing some plotting...\n');
+            statsAllStages = varStats(vars);
+
+            % barchart of all stats
+            plotStatsAllStages(siteID,statsAllStages,varnames);
+            % save plot
+            if saveStatsPlots == 1
+                fprintf('\n');
+                fprintf(['Saving ' varnames{1} ' plot...\n']);
+                if n == 2
+                    savepath = [localRootPath siteID '/' num2str(yearIn) '/' varMap.MetOrFlux{a(i)} '/Clean/'];
+                    filetext = [varnames{2} '_Stats'];
+                elseif n == 3
+                    savepath = [localRootPath siteID '/' num2str(yearIn) '/Clean/SecondStage/'];
+                    filetext = [varnames{3} '_Stats'];
+                end
+
+                type = 'png';
+                im_res = 200;
+                str = ['print -d' type ' -r' num2str(im_res) ' ' savepath filetext '.' type];
+                eval(str);
+            end
+        end
+        %*********************************
+
+        %*********************************
+        if dailyDist == 1
+        % rearrange arrays into daily data
+            recsPerDay = 24/freq;
+            recsPerHour = 1/freq;
+            varZero_daily = convertToDailyArray(vars(:,1),recsPerDay,daysPerYear);
+            varFirst_daily = convertToDailyArray(vars(:,2),recsPerDay,daysPerYear);
+            varSecond_daily = [];
+            if n == 3
+                varSecond_daily = convertToDailyArray(vars(:,3),recsPerDay,daysPerYear);
+            end
+
+            % plot hourly distribution by day
+            plotDailyDistByFreq(siteID,varnames,freq,varZero_daily,varFirst_daily,varSecond_daily);
+            % save plot
+            if saveDistPlots == 1
+                if n == 2
+                    savepath = [localRootPath siteID '/' num2str(yearIn) '/' varMap.MetOrFlux{a(i)} '/Clean/'];
+                    filetext = [varnames{2} '_Distr'];
+                elseif n == 3
+                    savepath = [localRootPath siteID '/' num2str(yearIn) '/Clean/SecondStage/'];
+                    filetext = [varnames{3} '_Distr'];
+                end
                 type = 'png';
                 im_res = 200;
                 str = ['print -d' type ' -r' num2str(im_res) ' ' savepath filetext '.' type];
@@ -123,20 +195,8 @@ for i = 1:numVar
             end
         end
 
-        if stats == 1
-            if strcmp(varname2,'SW_IN_1_1_1') | strcmp(varname2,'SW_OUT_1_1_1')
-                SW_down = daily_SW_stats(var3);
-                figure; boxplot(SW_down');
-            end
-        end
-
-       
     else
         continue
     end
-    
-
 end
 
-
-end

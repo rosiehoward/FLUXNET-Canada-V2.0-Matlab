@@ -1,4 +1,4 @@
-function SW_down = daily_SW_stats(var)
+function SW_down = daily_dist(var)
 %
 % Rosie Howard
 % 11 April 2024
