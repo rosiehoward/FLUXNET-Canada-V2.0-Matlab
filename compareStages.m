@@ -12,7 +12,7 @@
 
 clear;
 % set database path, site ID, and year
-dbpath = biomet_database_default;
+dbPath = biomet_database_default;
 siteID = 'TPAg';
 yearIn = 2023;
 freq = 0.5; % hours
@@ -22,7 +22,7 @@ stage = 'First';   % select stage to compare up to (Zero, First, Second;
                     % cleaning must have been done up to this stage)
 
 % look at traces/histograms/scatterplots
-makeStandardPlot = 0;   % 1 = yes, 0 = no
+makeStandardPlot = 1;   % 1 = yes, 0 = no
 saveStandardPlot = 1;   % 1 = yes, 0 = no
 
 % look at stats
@@ -30,7 +30,7 @@ stats = 0;
 saveStatsPlots = 1;
 
 % look at daily distributions
-dailyDist = 1;  
+dailyDist = 0;  
 saveDistPlots = 1;
 
 varMapFile = 'VariableMapping.xlsx';
@@ -69,18 +69,18 @@ for i = 1:length(a)
         fprintf(['Looking at ' varMap.OriginalName{a(i)} '...\n']);
         if strcmpi(varMap.Site{a(i)},siteID) == 0
             % need path to data for alternative site
-            dataPathZero = fullfile([dbpath '/yyyy/' varMap.Site{a(i)} '/' varMap.MetOrFlux{a(i)}]);
-            dataPathOne = fullfile([dbpath '/yyyy/' varMap.Site{a(i)} '/' varMap.MetOrFlux{a(i)} '/Clean']);
-            dataPathTwo = fullfile([dbpath '/yyyy/' varMap.Site{a(i)} '/Clean/SecondStage']);
+            dataPathZero = fullfile([dbPath '/yyyy/' varMap.Site{a(i)} '/' varMap.MetOrFlux{a(i)}]);
+            dataPathOne = fullfile([dbPath '/yyyy/' varMap.Site{a(i)} '/' varMap.MetOrFlux{a(i)} '/Clean']);
+            dataPathTwo = fullfile([dbPath '/yyyy/' varMap.Site{a(i)} '/Clean/SecondStage']);
         else
             % need path to data for CURRENT site
-            dataPathZero = fullfile([dbpath '/yyyy/' siteID '/' varMap.MetOrFlux{a(i)}]);
-            dataPathOne = fullfile([dbpath '/yyyy/' siteID '/' varMap.MetOrFlux{a(i)} '/Clean']);
-            dataPathTwo = fullfile([dbpath '/yyyy/' siteID '/Clean/SecondStage']);
+            dataPathZero = fullfile([dbPath '/yyyy/' siteID '/' varMap.MetOrFlux{a(i)}]);
+            dataPathOne = fullfile([dbPath '/yyyy/' siteID '/' varMap.MetOrFlux{a(i)} '/Clean']);
+            dataPathTwo = fullfile([dbPath '/yyyy/' siteID '/Clean/SecondStage']);
         end
 
         % load time vector
-        pthOut = fullfile(dbpath,'yyyy',siteID,varMap.MetOrFlux{a(i)});
+        pthOut = fullfile(dbPath,'yyyy',siteID,varMap.MetOrFlux{a(i)});
         tv = read_bor(fullfile(pthOut,'clean_tv'),8,[],yearIn);
         % convert time vector to Matlab's datetime
         tv_dt = datetime(tv,'ConvertFrom','datenum');
