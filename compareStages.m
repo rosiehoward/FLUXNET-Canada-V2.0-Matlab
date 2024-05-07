@@ -18,8 +18,8 @@ yearIn = 2023;
 freq = 0.5; % hours
 
 % set other manual parameters
-stage = 'First';   % select stage to compare up to (Zero, First, Second; 
-                    % cleaning must have been done up to this stage)
+stage = 'Second';   % select stage to compare up to (Zero, First, Second, Third; 
+                    % cleaning must have been done up to the stage you select!)
 
 % look at traces/histograms/scatterplots
 makeStandardPlot = 1;   % 1 = yes, 0 = no
@@ -34,7 +34,7 @@ dailyDist = 0;
 saveDistPlots = 1;
 
 varMapFile = 'VariableMapping.xlsx';
-localRootPath = '../../Matlab/local_personal_plots/Altaf_data/';
+localRootPath = '../../Matlab/local_personal_plots/TurkeyPoint_Altaf/';
 
 % load variable mapping spreadsheet (must create this first)
 % ****later can come from INI files but this works for now****
@@ -45,6 +45,7 @@ varMap = readtable(fullfile(localRootPath,siteID,varMapFile));
 stageZero = varMap.Properties.VariableNames{4};    % original data
 stageOne = varMap.Properties.VariableNames{5};    % First stage
 stageTwo = varMap.Properties.VariableNames{6};      % Second stage
+stageThree = varMap.Properties.VariableNames{7};    % Third stage
 
 % is it a leap year?
 % use Biomet function "leapyear"
@@ -72,11 +73,13 @@ for i = 1:length(a)
             dataPathZero = fullfile([dbPath '/yyyy/' varMap.Site{a(i)} '/' varMap.MetOrFlux{a(i)}]);
             dataPathOne = fullfile([dbPath '/yyyy/' varMap.Site{a(i)} '/' varMap.MetOrFlux{a(i)} '/Clean']);
             dataPathTwo = fullfile([dbPath '/yyyy/' varMap.Site{a(i)} '/Clean/SecondStage']);
+            dataPathThree = fullfile([dbPath '/yyyy/' varMap.Site{a(i)} '/Clean/ThirdStage']);
         else
             % need path to data for CURRENT site
             dataPathZero = fullfile([dbPath '/yyyy/' siteID '/' varMap.MetOrFlux{a(i)}]);
             dataPathOne = fullfile([dbPath '/yyyy/' siteID '/' varMap.MetOrFlux{a(i)} '/Clean']);
             dataPathTwo = fullfile([dbPath '/yyyy/' siteID '/Clean/SecondStage']);
+            dataPathThree = fullfile([dbPath '/yyyy/' siteID '/Clean/ThirdStage']);
         end
 
         % load time vector
@@ -86,35 +89,49 @@ for i = 1:length(a)
         tv_dt = datetime(tv,'ConvertFrom','datenum');
 
         % load variables
-        varname0 = eval(['varMap.' stageZero '{a(i)}']); %#ok<EVLDOT>
-        var0 = read_bor(fullfile(dataPathZero,varname0),[],[],yearIn);
-        varname1 = eval(['varMap.' stageOne '{a(i)}']); %#ok<EVLDOT>
-        var1 = read_bor(fullfile(dataPathOne,varname1),[],[],yearIn);
-        if strcmpi(stage,'Second')
-            varname2 = eval(['varMap.' stageTwo '{a(i)}']); %#ok<UNRCH,EVLDOT>
-            var2 = read_bor(fullfile(dataPathTwo,varname2),[],[],yearIn);
-            if strcmpi(varname1,varname2)
+        if ~strcmpi(varMap.OriginalName{a(i)},'NaN')
+            varname0 = eval(['varMap.' stageZero '{a(i)}']); %#ok<EVLDOT>
+            var0 = read_bor(fullfile(dataPathZero,varname0),[],[],yearIn);
+        end
+        if ~strcmpi(varMap.FirstStageName{a(i)},'NaN')
+            varname1 = eval(['varMap.' stageOne '{a(i)}']); %#ok<EVLDOT>
+            var1 = read_bor(fullfile(dataPathOne,varname1),[],[],yearIn);
+        end
+        if strcmpi(stage,'Second') 
+            if ~strcmpi(varMap.SecondStageName{a(i)},'NaN')
+                varname2 = eval(['varMap.' stageTwo '{a(i)}']); %#ok<EVLDOT>
+                var2 = read_bor(fullfile(dataPathTwo,varname2),[],[],yearIn);
                 varname2 = [varname2 '_SecondStage']; %#ok<AGROW>
+            end
+        elseif strcmpi(stage,'Third') %#ok<UNRCH>
+            if ~strcmpi(varMap.ThirdStageName{a(i)},'NaN')
+                varname3 = eval(['varMap.' stageThree '{a(i)}']); %#ok<EVLDOT>
+                var3 = read_bor(fullfile(dataPathThree,varname3),[],[],yearIn);
+                varname3 = [varname3 '_ThirdStage']; %#ok<AGROW>
             end
         end
         
         % concat variables for easy argument passing
-        if strcmpi(stage,'First')
+        if strcmpi(stage,'First') & exist('var0',"var") && exist('var1',"var")
             n = 2;
             vars = cat(2,var0,var1);
             varnames = {varname0,varname1};
-        elseif strcmpi(stage,'Second')
+        elseif strcmpi(stage,'Second') & exist('var0',"var") && exist('var1',"var") && exist('var2',"var")
             n = 3;
             vars = cat(2,var0,var1,var2);
             varnames = {varname0,varname1,varname2};
+        elseif strcmpi(stage,'Third') & exist('var0',"var") && exist('var1',"var") && exist('var2',"var") && exist('var3',"var")
+            n = 4;
+            vars = cat(2,var0,var1,var2,var3);
+            varnames = {varname0,varname1,varname2,varname3};
         end
-        
+
         %*********************************
         % plot standard variables
         if makeStandardPlot == 1
             fprintf('\n');
             fprintf('Plotting standard comparisons between stages...\n');
-            plotStandardComparison(siteID,tv_dt,vars,varnames);
+            plotStandardComparison(siteID,tv_dt,vars,varnames,dataPathOne);
             % save plot
             if saveStandardPlot == 1
                 if n == 2
@@ -124,8 +141,13 @@ for i = 1:length(a)
                     filetext = varnames{2};
                 elseif n == 3
                     fprintf('\n');
-                    fprintf(['Saving ' varnames{1} ' plot...\n']);
+                    fprintf(['Saving ' varnames{2} ' plot...\n']);
                     savepath = [localRootPath siteID '/' num2str(yearIn) '/Clean/SecondStage/'];
+                    filetext = varnames{3};
+                elseif n == 4
+                    fprintf('\n');
+                    fprintf(['Saving ' varnames{3} ' plot...\n']);
+                    savepath = [localRootPath siteID '/' num2str(yearIn) '/Clean/ThirdStage/'];
                     filetext = varnames{3};
                 end
                 type = 'png';

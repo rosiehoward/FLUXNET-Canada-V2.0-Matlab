@@ -16,72 +16,36 @@
 
 kill
 
-yearIn = 2021;
+yearIn = 2023;
 siteID = 'TPAg';
 
 if strcmp(siteID,'TP_PPT') | strcmp(siteID,'TPD_PPT')
     METpath = fullfile(biomet_sites_default,siteID,[siteID '_Raw_Cleaned'],sprintf('%s_master_%d.mat',siteID,yearIn));
-    METpathPrevYear = fullfile(biomet_sites_default,siteID,[siteID '_Raw_Cleaned'],sprintf('%s_master_%d.mat',siteID,yearIn+1));
+    % METpathPrevYear = fullfile(biomet_sites_default,siteID,[siteID '_Raw_Cleaned'],sprintf('%s_master_%d.mat',siteID,yearIn+1));
+    tmp_Met = load(METpath);
+    eval([siteID '_Met = convert_data(tmp_Met.master);'])
+    % TPAg_Met  = convert_data(tmp_Met.master);
 else
     ECpath  = fullfile(biomet_sites_default,siteID,[siteID '_Raw_Cleaned'],sprintf('%s_CPEC_clean_%d.mat',siteID,yearIn));
     METpath = fullfile(biomet_sites_default,siteID,[siteID '_Raw_Cleaned'],sprintf('%s_master_%d.mat',siteID,yearIn));
+
+    tmp_EC = load(ECpath);
+    eval([siteID '_EC = convert_data(tmp_EC.master);'])
+    % TPAg_EC = convert_data(tmp_EC.master);
+    tmp_Met = load(METpath);
+    eval([siteID '_Met = convert_data(tmp_Met.master);'])
+    % TPAg_Met  = convert_data(tmp_Met.master);
 end
-
-tmp_EC = load(ECpath);
-eval([siteID '_EC = convert_data(tmp_EC.master);'])
-TPAg_EC = convert_data(tmp_EC.master);
-tmp_Met = load(METpath);
-eval([siteID '_Met = convert_data(tmp_Met.master);'])
-TPAg_Met  = convert_data(tmp_Met.master);
-
-% % Altaf's data is in GMT, need to also load yearIn+1 (if it exists) to append first
-% % 10 datapoints (5 hours) and remove last 10 datapoints
-% ECpathPrevYear  = fullfile(biomet_sites_default,siteID,[siteID '_Raw_Cleaned'],sprintf('%s_CPEC_clean_%d.mat',siteID,yearIn+1));
-% METpathPrevYear = fullfile(biomet_sites_default,siteID,[siteID '_Raw_Cleaned'],sprintf('%s_master_%d.mat',siteID,yearIn+1));
-% 
-% if isfile(ECpathPrevYear) && isfile(METpathPrevYear)
-%     fprintf('Adding on some of next year''s data due to timezone difference\n');
-% 
-%     tmp_EC_PrevYear = load(ECpathPrevYear);
-%     eval([siteID '_EC_PrevYear = convert_data(tmp_EC_PrevYear.master);']);
-%     TPAg_EC_PrevYear = convert_data(tmp_EC_PrevYear.master);
-%     tmp_Met = load(METpathPrevYear);
-%     eval([siteID '_Met_PrevYear = convert_data(tmp_Met.master);'])
-%     TPAg_Met_PrevYear = convert_data(tmp_Met.master);
-% 
-%     % convert to table, concatenate, then back to struct
-%     TPAg_EC_PrevYearArray = struct2array(TPAg_EC_PrevYear);
-%     TPAg_EC_Array = struct2array(TPAg_EC);
-%     eval([siteID '_Met_PrevYearArray = struct2array(' siteID '_Met_PrevYear);']);
-%     eval([siteID '_Met_Array = struct2array(' siteID '_Met);']);
-%     TPAg_Met_PrevYearArray = struct2array(TPAg_Met_PrevYear);
-%     TPAg_Met_Array = struct2array(TPAg_Met);
-% 
-%     eval(['tmp_' siteID '_Met = cat(1,' siteID '_Met_PrevYearArray(end-10+1:end,:),' siteID '_Met_Array(1:17510,:));']);
-%     eval(['tmp_Met.master.data = tmp_' siteID '_Met;']);
-%     eval(['tmp_' siteID '_EC = cat(1,' siteID '_EC_PrevYearArray(end-10+1:end,:),' siteID '_EC_Array(1:17510,:));']);
-%     eval(['tmp_EC.master.data = tmp_' siteID '_EC;']);
-%     tmp_TPAg_Met = cat(1,TPAg_Met_PrevYearArray(end-10+1:end,:),TPAg_Met_Array(1:17510,:));
-%     tmp_Met.master.data = tmp_TPAg_Met;
-%     tmp_TPAg_EC = cat(1,TPAg_EC_PrevYearArray(end-10+1:end,:),TPAg_EC_Array(1:17510,:));
-%     tmp_EC.master.data = tmp_TPAg_EC;
-%     clear *PrevYear* *Array*
-% end
-% 
-% eval([siteID '_EC = convert_data(tmp_EC.master);']);
-% eval([siteID '_Met  = convert_data(tmp_Met.master);']);
-% TPAg_EC = convert_data(tmp_EC.master);
-% TPAg_Met  = convert_data(tmp_Met.master);
 
 % Create TimeVector
 GMToffset = 5/24;  % Altaf's raw data is in GMT time
-TimeVector = fr_round_time(datenum(yearIn,1,1,0,30,0):1/48:datenum(yearIn+1,1,1,0,0,0))' - GMToffset; %#ok<DATNM>
+TimeVector = fr_round_time(datenum(yearIn,1,1,0,30,0):1/48:datenum(yearIn+1,1,1,0,0,0))' - GMToffset; %#ok<NASGU,DATNM>
 % TimeVector = fr_round_time(datenum(yearIn,1,1,0,30,0):1/48:datenum(yearIn+1,1,1,0,0,0))'; %#ok<DATNM>
 
 eval([siteID '_EC.TimeVector = TimeVector;']);
 eval([siteID '_Met.TimeVector = TimeVector;']);
-TPAg_EC.TimeVector = TimeVector;
-TPAg_Met.TimeVector = TimeVector;
+% TPAg_EC.TimeVector = TimeVector;
+% TPAg_Met.TimeVector = TimeVector;
 
 clear tmp* TimeVector
 
@@ -120,13 +84,15 @@ tv_dt = datetime(tv,'ConvertFrom','datenum');
 
 make_plot = 1;  % 0 = no, 1 = yes
 saveplot = 1;   % 0 = no, 1 = yes
-dataType = 'Flux';
+dataType = 'Met';
 
 if strcmp(dataType,'Flux')
     pthOut = pthOutEC;
 elseif strcmp(dataType,'Met')
     pthOut = pthOutMet;
 end
+
+% irgaFilteringPlots;
 
 % list_files = dir([dbPath '/' num2str(yearIn) '/' siteID '/' dataType '/']););
 list_files = dir([biomet_database_default '/' num2str(yearIn) '/' siteID '/' dataType '/']);
@@ -165,7 +131,7 @@ if make_plot == 1
 
         % save plot
         if saveplot == 1
-            savepath = ['/Users/rosiehoward/Documents/UBC/Micromet/Matlab/local_personal_plots/Altaf_data/' siteID '/' num2str(yearIn) '/' dataType '/'];
+            savepath = ['/Users/rosiehoward/Documents/UBC/Micromet/Matlab/local_personal_plots/TurkeyPoint_Altaf/' siteID '/' num2str(yearIn) '/' dataType '/'];
             filetext = value;
             type = 'png';
             im_res = 200;
@@ -175,7 +141,7 @@ if make_plot == 1
 
     end
 end
-clear pthOut
+% clear pthOut
 
 % % load TA from EC
 % Tair_EC = read_bor(fullfile(pthOutEC,'Tair'),[],[],yearIn);
@@ -266,6 +232,23 @@ dataType = 'Clean/SecondStage';
 % dataType = 'Clean\SecondStage';
 pthSecondStageClean = fullfile(dbPath,'yyyy',siteID,dataType);
 
+NETRAD_1_1_1 = read_bor(fullfile(pthSecondStageClean,'NETRAD_1_1_1'),[],[],yearIn);
+NETRAD_1_1_1_measured = read_bor(fullfile(pthSecondStageClean,'NETRAD_1_1_1_measured'),[],[],yearIn);
+
+badRad = read_bor(fullfile(pthSecondStageClean,'badRad'),[],[],yearIn);
+badWD = read_bor(fullfile(pthSecondStageClean,'badWD'),[],[],yearIn);
+
+WD_1_1_1 = read_bor(fullfile(pthSecondStageClean,'WD_1_1_1'),[],[],yearIn);
+SW_IN_1_1_1 = read_bor(fullfile(pthSecondStageClean,'SW_IN_1_1_1'),[],[],yearIn);
+
+VPD_1_1_1 = read_bor(fullfile(pthSecondStageClean,'VPD_1_1_1'),[],[],yearIn);
+FC_1_1_1 = read_bor(fullfile(pthSecondStageClean,'FC_1_1_1'),[],[],yearIn);
+SC_1_1_1 = read_bor(fullfile(pthSecondStageClean,'SC_1_1_1'),[],[],yearIn);
+USTAR = read_bor(fullfile(pthSecondStageClean,'USTAR'),[],[],yearIn);
+ET = read_bor(fullfile(pthSecondStageClean,'ET'),[],[],yearIn);
+NEE_1_1_1 = read_bor(fullfile(pthSecondStageClean,'NEE_1_1_1'),[],[],yearIn);
+RG_1_1_1 = read_bor(fullfile(pthSecondStageClean,'RG_1_1_1'),[],[],yearIn);
+
 % RH_1_1_1 = read_bor(fullfile(pthFirstStageClean,'RH_1_1_1'),[],[],yearIn);
 % RH_SecondStage =  read_bor(fullfile(pthSecondStageClean,'RH_1_1_1'),[],[],yearIn);
 
@@ -282,6 +265,19 @@ title('RH')
 legend('RH 1^{st} Stage','RH 2^{nd} Stage')
 zoom on
 grid on
+
+%% 
+dataType = 'Clean/ThirdStage';
+% dataType = 'Clean\SecondStage';
+pthSecondStageClean = fullfile(dbPath,'yyyy',siteID,dataType);
+
+GPP_PI_F_DT = read_bor(fullfile(pthSecondStageClean,'GPP_PI_F_DT'),[],[],yearIn);
+GPP_PI_F_NT = read_bor(fullfile(pthSecondStageClean,'GPP_PI_F_NT'),[],[],yearIn);
+Reco_PI_F_DT = read_bor(fullfile(pthSecondStageClean,'Reco_PI_F_DT'),[],[],yearIn);
+Reco_PI_F_NT = read_bor(fullfile(pthSecondStageClean,'Reco_PI_F_NT'),[],[],yearIn);
+H_PI_F_MDS = read_bor(fullfile(pthSecondStageClean,'H_PI_F_MDS'),[],[],yearIn);
+LE_PI_F_MDS = read_bor(fullfile(pthSecondStageClean,'LE_PI_F_MDS'),[],[],yearIn);
+NEE_PI_F_MDS = read_bor(fullfile(pthSecondStageClean,'NEE_PI_F_MDS'),[],[],yearIn);
 
 %% Local Data base
 % During the testing and ini file editing the analysis can and should be done

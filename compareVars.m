@@ -20,40 +20,53 @@ dbPath = biomet_database_default;
 siteID = 'TPAg';
 yearIn = 2023;
 
-saveplot = 1;
-plotName = 'TPAg_DownShortwaveRad_TP39_SW_IN_TP39';
+saveplot = 0;
+plotName = 'TPAg_DownShortwaveRad_TPAg_UpShortwaveRad_Diff';
 
 % load variable mapping spreadsheet (must create this first)
 % ****later can come from INI files but this works for now****
 % default compare file
 varMapFile = 'VariableCompare.xlsx';
-varMapPath = ['../../Matlab/local_personal_plots/Altaf_data/' siteID '/'];
+varMapPath = ['../../Matlab/local_personal_plots/TurkeyPoint_Altaf/' siteID '/'];
 varMap = readtable([varMapPath varMapFile]);
 % [numVar,~] = size(varMap);
 
 % select variables to compare (this needs to be handled much better)
 indVar1 = 4;
-indVar2 = indVar1+1;    % should be consecutive in file
+indVar2 = 16;
+% indVar2 = indVar1+1;    % should be consecutive in file
 
 variableInds = [indVar1,indVar2];  % enter two (or more) rows to be compared
 % variableInds = [indVar1,indVar2];  % enter two (or more) rows to be compared
 
-varname1 = varMap.OriginalName{variableInds(1)};    % first variable
+%% variable name at each stage
+% varname1 = varMap.OriginalName{variableInds(1)};    % first variable
 % varname2 = varMap.OriginalName{variableInds(2)};    % second variable
 
 % varname1 = varMap.FirstStageName{variableInds(1)};    % first variable
-varname2 = varMap.FirstStageName{variableInds(2)};    % second variable
+% varname2 = varMap.FirstStageName{variableInds(2)};    % second variable
+
+varname1 = varMap.SecondStageName{variableInds(1)};    % first variable
+varname2 = varMap.SecondStageName{variableInds(2)};    % second variable
+
+% varname1 = [varMap.SecondStageName{variableInds(1)} '_SecondStage'];    % first variable
+% varname2 = [varMap.SecondStageName{variableInds(2)} '_SecondStage'];    % second variable
 
 dataType1 = varMap.MetOrFlux{variableInds(1)};
 dataType2 = varMap.MetOrFlux{variableInds(2)};
 
+%% paths to data
 % paths to original data
-pthOut1 = fullfile(dbPath,'yyyy',siteID,dataType1);
+% pthOut1 = fullfile(dbPath,'yyyy',siteID,dataType1);
 % pthOut2 = fullfile(dbPath,'yyyy',siteID,dataType2);
 
 % paths to first stage
-% pthOut1 = fullfile([dbPath '/yyyy/' site '/' varMap.MetOrFlux{variableInds(1)} '/Clean']);
-pthOut2 = fullfile([dbPath '/yyyy/' siteID '/' varMap.MetOrFlux{variableInds(2)} '/Clean']);
+% pthOut1 = fullfile([dbPath '/yyyy/' siteID '/' varMap.MetOrFlux{variableInds(1)} '/Clean']);
+% pthOut2 = fullfile([dbPath '/yyyy/' siteID '/' varMap.MetOrFlux{variableInds(2)} '/Clean']);
+
+% paths to second stage
+pthOut1 = fullfile([dbPath '/yyyy/' siteID '/Clean/SecondStage']);
+pthOut2 = fullfile([dbPath '/yyyy/' siteID '/Clean/SecondStage']);
 
 % load time vector
 % pthOut = fullfile(path,'yyyy',site,varMap.MetOrFlux{variableInds(1)});
@@ -72,8 +85,8 @@ tv_dt = datetime(tv,'ConvertFrom','datenum');
 % pthSecondStageClean = fullfile(dbPath,'yyyy',siteID,dataType);
 
 % load variables
-var1 = read_bor(fullfile(pthOut1,varname1),[],[],yearIn);
-var2 = read_bor(fullfile(pthOut2,varname2),[],[],yearIn);
+SW_IN_Second = read_bor(fullfile(pthOut1,varname1),[],[],yearIn);
+SW_OUT_Second = read_bor(fullfile(pthOut2,varname2),[],[],yearIn);
 
 % plot variables
 % if ~isempty(plotName)
