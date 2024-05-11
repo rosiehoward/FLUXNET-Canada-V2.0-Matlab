@@ -16,7 +16,7 @@
 
 kill
 
-yearIn = 2023;
+yearIn = 2018;
 siteID = 'TPAg';
 
 if strcmp(siteID,'TP_PPT') | strcmp(siteID,'TPD_PPT')
@@ -66,7 +66,7 @@ missingPointValue = NaN;
 % Process Flux data
 dataType = 'Flux';
 pthOutEC = fullfile(dbPath,'yyyy',siteID,dataType);   
-% [structIn,dbFileNames, dbFieldNames,errCode] = db_struct2database(TPAg_EC,pthOutEC,verbose_flag,excludeSubStructures,timeUnit,missingPointValue,structType,1);
+% eval(['[structIn,dbFileNames, dbFieldNames,errCode] = db_struct2database(' siteID '_EC,pthOutEC,verbose_flag,excludeSubStructures,timeUnit,missingPointValue,structType,1);']);
 
 % Process Met data
 dataType = 'Met';
@@ -84,7 +84,7 @@ tv_dt = datetime(tv,'ConvertFrom','datenum');
 
 make_plot = 1;  % 0 = no, 1 = yes
 saveplot = 1;   % 0 = no, 1 = yes
-dataType = 'Met';
+dataType = 'Flux';
 
 if strcmp(dataType,'Flux')
     pthOut = pthOutEC;

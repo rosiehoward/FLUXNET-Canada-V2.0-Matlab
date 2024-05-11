@@ -54,7 +54,7 @@ wrotstd = read_bor(fullfile(firstStageFluxPath,'W_SIGMA_1_1_1'),[],[],yearIn);
 % percentiles and other stats
 % ptile_test = 85;    % change this percentile to experiment with data removal
 % ptiles = [80,85,90];
-ptiles = [85,90,95];
+ptiles = [85,90,95,99];
 % ptiles = [70,80,90];
 % ptiles = [50,75,90,95];
 len_ptiles = length(ptiles);

@@ -5,7 +5,8 @@ close;
 figure('units','centimeters','outerposition',[0 0 50 40]);
 set(gcf,'color','white');
 
-width = 5;
+% width = 2;
+nbins = 40;
 scale = 'log';
 yearIn = 2023;
 % scale = 'linear';
@@ -34,19 +35,19 @@ end
 
 %traces
 subplot(3,2,1:2);
-plot(tv_dt,vars(:,1),'.','LineWidth',2);
+plot(tv_dt,vars(:,1),'LineWidth',1.5);
 hold on;
 if n == 2   % zero and first stages
     % plot(tv_dt,vars(:,1),'.','LineWidth',2);
     % hold on;
-    plot(tv_dt,vars(:,2),'.','LineWidth',2);
+    plot(tv_dt,vars(:,2),'LineWidth',1.5);
     legend(varnames{1},varnames{2});
 elseif n == 3   % second stage
-    plot(tv_dt,vars(:,2),'.','LineWidth',2);
-    plot(tv_dt,vars(:,3),'.','LineWidth',2);
+    plot(tv_dt,vars(:,2),'LineWidth',1.5);
+    plot(tv_dt,vars(:,3),'LineWidth',1.5);
     legend(varnames{1},varnames{2},varnames{3});
 elseif n == 4   % third stage
-    plot(tv_dt,vars(:,4),'.','LineWidth',2);
+    plot(tv_dt,vars(:,4),'.','LineWidth',1.5);
     legend(varnames{1},varnames{4});
 end
 zoom on
@@ -70,22 +71,23 @@ subplot(3,2,3);
 %     legend(varnames{1},varnames{4});
 % end
 
-histogram(vars(:,1),'BinWidth',width);       % raw data
+histogram(vars(:,1),'NumBins',nbins);% 'BinWidth',width);       % raw data
 hold on
 if n == 2   % first stages
-    histogram(vars(:,2),'BinWidth',width);
+    histogram(vars(:,2),'NumBins',nbins);%,'BinWidth',h.BinWidth);
     set(gca,'YScale',scale);
     legend(varnames{1},varnames{2});
 elseif n == 3   % second stage
-    histogram(vars(:,2),'BinWidth',width);
-    histogram(vars(:,3),'BinWidth',width);
+    histogram(vars(:,2),'NumBins',nbins);%,'BinWidth',h.BinWidth);
+    histogram(vars(:,3),'NumBins',nbins);%,'BinWidth',h.BinWidth);
     set(gca,'YScale',scale);
     legend(varnames{1},varnames{2},varnames{3});
 elseif n == 4   % all stages
-    histogram(vars(:,4),'BinWidth',width);
+    histogram(vars(:,4),'NumBins',nbins);%,'BinWidth',h.BinWidth);
     legend(varnames{1},varnames{4});
 end
 grid on
+clear h
 
 % scatterplots
 subplot(3,2,4);
@@ -132,15 +134,15 @@ if n == 2
     grid on
 
 elseif n == 3
-    % subplot(3,2,5);
-    % plot(tv_dt,diff21,'.');
-    % hold on
-    % plot(tv_dt,diff31,'.');
-    % plot(tv_dt,diff32,'.');
-    % grid on
-    % legend('diff21','diff31','diff32')
-
     subplot(3,2,5);
+    plot(tv_dt,diff21,'.');
+    hold on
+    plot(tv_dt,diff31,'.');
+    plot(tv_dt,diff32,'.');
+    grid on
+    legend('diff21','diff31','diff32')
+
+    subplot(3,2,6);
     histogram(diff21);
     grid on
     hold on
@@ -149,16 +151,42 @@ elseif n == 3
     set(gca,'YScale','log');
     legend('diff21','diff31','diff32')
 
-    subplot(3,2,6);
-    ptile = 95;
-    wrotstd = read_bor(fullfile(firstStagePath,'W_SIGMA_1_1_1'),[],[],yearIn);
-    wrotstd_ptile = prctile(wrotstd,ptile);
-    histogram(wrotstd);
-    grid on
-    hold on
-    h1 = xline(wrotstd_ptile,'k--',{'90th'},'LineWidth',1.5);
-    h1.FontSize = 12;
-    legend('w_sigma')
+  
+    ptiles = [90,95,90];
+    % H2Ostd = read_bor(fullfile(firstStagePath,'H2O_SIGMA_1_1_1'),[],[],yearIn);
+    % H2Ostd_ptile = prctile(H2Ostd,ptiles(1));
+    % wrotstd = read_bor(fullfile(firstStagePath,'W_SIGMA_1_1_1'),[],[],yearIn);
+    % wrotstd_ptile = prctile(wrotstd,ptiles(2));
+    % CO2std = read_bor(fullfile(firstStagePath,'CO2_SIGMA_1_1_1'),[],[],yearIn);
+    % CO2std_ptile = prctile(CO2std,ptiles(3));
+
+    % subplot(3,2,5);
+    % histogram(wrotstd);
+    % % set(gca,'YScale',scale);
+    % grid on
+    % hold on
+    % h1 = xline(wrotstd_ptile,'k--',{'95th'},'LineWidth',1.5);
+    % h1.FontSize = 12;
+    % legend('w_sigma')
+    % 
+    % subplot(3,2,6);
+    % histogram(H2Ostd);
+    % set(gca,'YScale',scale);
+    % grid on
+    % hold on
+    % h1 = xline(H2Ostd_ptile,'k--',{'90th'},'LineWidth',1.5);
+    % h1.FontSize = 12;
+    % legend('H2O_sigma')
+
+    % subplot(3,2,6);
+    % histogram(CO2std);
+    % set(gca,'YScale',scale);
+    % grid on
+    % hold on
+    % h1 = xline(CO2std_ptile,'k--',{'90th'},'LineWidth',1.5);
+    % h1.FontSize = 12;
+    % legend('CO2_sigma')
+
 end
 
 if n == 2

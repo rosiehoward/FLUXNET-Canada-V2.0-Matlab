@@ -10,11 +10,11 @@
 % Rosie Howard
 % 8 April 2024
 
-clear;
+% clear;
 % set database path, site ID, and year
 dbPath = biomet_database_default;
 siteID = 'TPAg';
-yearIn = 2023;
+yearIn = 2022;
 freq = 0.5; % hours
 
 % set other manual parameters
@@ -133,6 +133,7 @@ for i = 1:length(a)
             fprintf('Plotting standard comparisons between stages...\n');
             plotStandardComparison(siteID,tv_dt,vars,varnames,dataPathOne);
             % save plot
+            dataPathOne
             if saveStandardPlot == 1
                 if n == 2
                     fprintf('\n');

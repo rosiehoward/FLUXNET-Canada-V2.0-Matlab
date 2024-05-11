@@ -9,6 +9,9 @@ yearIn = 2023;
 
 dbPath = biomet_database_default;
 
+zeroStageMetPath = '/Users/rosiehoward/Documents/UBC/Micromet/FLUXNET-Canada-V2.0/Database/yyyy/TPAg/Met/';
+zeroStageFluxPath = '/Users/rosiehoward/Documents/UBC/Micromet/FLUXNET-Canada-V2.0/Database/yyyy/TPAg/Flux/';
+
 firstStageMetPath = '/Users/rosiehoward/Documents/UBC/Micromet/FLUXNET-Canada-V2.0/Database/yyyy/TPAg/Met/Clean';
 firstStageFluxPath = '/Users/rosiehoward/Documents/UBC/Micromet/FLUXNET-Canada-V2.0/Database/yyyy/TPAg/Flux/Clean';
 
@@ -58,12 +61,12 @@ annotation('textbox', [0.05, 0.05, 0.5, 0], 'string', ...
 %% plot all third stage
 makeplot = 1;
 saveplot = 1;
-savepath = ['/Users/rosiehoward/Documents/UBC/Micromet/Matlab/local_personal_plots/TurkeyPoint_Altaf/' siteID '/' num2str(yearIn) '/Clean/ThirdStage/'];
-% savepath = ['/Users/rosiehoward/Documents/UBC/Micromet/Matlab/local_personal_plots/TurkeyPoint_Altaf/' siteID '/' num2str(yearIn) '/Clean/ThirdStage_Default_Ustar/'];
+% savepath = ['/Users/rosiehoward/Documents/UBC/Micromet/Matlab/local_personal_plots/TurkeyPoint_Altaf/' siteID '/' num2str(yearIn) '/Clean/ThirdStage/'];
+savepath = ['/Users/rosiehoward/Documents/UBC/Micromet/Matlab/local_personal_plots/TurkeyPoint_Altaf/' siteID '/' num2str(yearIn) '/Clean/ThirdStage_Default_Ustar/'];
 
 % load variables
-list_files = dir([biomet_database_default '/' num2str(yearIn) '/' siteID '/Clean/ThirdStage']);
-% list_files = dir([biomet_database_default '/' num2str(yearIn) '/' siteID '/Clean/ThirdStage_Default_Ustar']);
+% list_files = dir([biomet_database_default '/' num2str(yearIn) '/' siteID '/Clean/ThirdStage']);
+list_files = dir([biomet_database_default '/' num2str(yearIn) '/' siteID '/Clean/ThirdStage_Default_Ustar']);
 
 if makeplot == 1
     for i = 1:length(list_files)
@@ -81,8 +84,8 @@ if makeplot == 1
             value = baseFileName;
         end
         % load data
-        var = read_bor(fullfile(thirdStagePath,value),[],[],yearIn);
-        % var = read_bor(fullfile(thirdStageUStarPath,value),[],[],yearIn);
+        % var = read_bor(fullfile(thirdStagePath,value),[],[],yearIn);
+        var = read_bor(fullfile(thirdStageUStarPath,value),[],[],yearIn);
         
         % calculate number of samples
         m = length(var);
