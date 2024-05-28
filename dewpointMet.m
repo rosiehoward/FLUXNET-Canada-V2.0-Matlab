@@ -1,15 +1,15 @@
-function Tdew = dewpointMet(T,RH)
+function Td = dewpointMet(T,RH)
 % Calculate dewpoint temperature (degC) from met data
 % Rosie Howard
 % 1 May 2024
 %
 % Reference 
-% Stull, 2017: Practical Meteorology, pp.99-92
+% Stull, 2017: Practical Meteorology, pp.89-92
 %
 % Inputs:   T = temperature in degC
 %           RH = relative humidity in %
 %
-% Output:   Tdew = dewpoint temperature in degC
+% Output:   Td = dewpoint temperature in degC
 
 % constants
 Rv = 461;       % water vapour gas constant (J kg^-1 K^-1)
@@ -25,12 +25,14 @@ e_sat = e0*exp((Lv/Rv) * ( (1/T0) - (T_K.^(-1)) ));        % Clausius-Clapeyron 
 e = e_sat.*RH/100;
 
 % dewpoint temperature
-Tdew_K = (1/T0 - (Rv/Lv)*log(e/e0)).^(-1);
-Tdew = Tdew_K - 273.15;     % convert to degC
+Td_K = (1/T0 - (Rv/Lv)*log(e/e0)).^(-1);
+Td = Td_K - 273.15;     % convert to degC
 
 
-% from LI-610 dew point generator's manual:
+% from LI-610 dew point generator's manual, for comparison:
 % e_sat = 0.61365*exp((17.502*T)./(240.97+T));
 % e = e_sat.*RH;
 % z = log(e/0.61365);
 % Tdew = 240.97*z./(17.502-z); 
+
+% EOF

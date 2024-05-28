@@ -29,5 +29,5 @@ e = e_sat.*RH/100;
 % calculate mixing ratio, r
 r = (eps*e)./(P - e);
 
-
+% EOF
 

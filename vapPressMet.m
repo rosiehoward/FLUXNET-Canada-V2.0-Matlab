@@ -10,6 +10,7 @@ function [e,e_sat] = vapPressMet(T,RH)
 %           RH = relative humidity (%)
 %
 % Output:   e = vapour pressure in kPa
+%           esat = saturated vapour pressure in kPa
 
 % constants
 Rv = 461;       % water vapour gas constant (J kg^-1 K^-1)
@@ -23,3 +24,5 @@ T_K = T + 273.15;   % convert temperature to Kelvin
 % calculate vapour pressure (kPa)
 e_sat = e0*exp((Lv/Rv) * ( (1/T0) - (T_K.^(-1)) ));        % Clausius-Clapeyron eqn.
 e = e_sat.*RH/100;
+
+% EOF
