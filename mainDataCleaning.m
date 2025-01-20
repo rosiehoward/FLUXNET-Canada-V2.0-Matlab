@@ -17,9 +17,9 @@
 kill
 
 siteID = 'TPAG';    % must be upper case
-yearIn = 2020:2023;
+years = 2020:2023;
 
-for yearIn = yearIn
+for yearIn = years
 
     if strcmp(siteID,'TP_PPT') | strcmp(siteID,'TPD_PPT')   % only Met data
         METpath = fullfile(biomet_sites_default,siteID,[siteID '_Raw_Cleaned'],sprintf('%s_master_%d.mat',siteID,yearIn));
@@ -30,7 +30,7 @@ for yearIn = yearIn
         METpath = fullfile(biomet_sites_default,siteID,[siteID '_Raw_Cleaned'],sprintf('%s_master_%d.mat',siteID,yearIn));
 
         tmp_EC = load(ECpath);
-        eval([siteID '_EC = convert_data(tmp_EC.master);'])
+        eval([siteID '_EC = convert_data(tmp_EC.master);']);
         tmp_Met = load(METpath);
         eval([siteID '_Met = convert_data(tmp_Met.master);'])
     end
@@ -91,7 +91,7 @@ end    % end looping over years
 
 %% Run first, second, third stage, and convert to AmeriFlux format ([1 2 7 8]) for all years
 % Once everything is working and has been plotted/checked, can run all stages at once:
-fr_automated_cleaning(yearIn,siteID,[1 2 7 8]);
+fr_automated_cleaning(years,siteID,[1 2 7 8]);
 
 %% Local Data base
 % During the testing and ini file editing the analysis can and should be done

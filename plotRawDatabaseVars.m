@@ -82,6 +82,8 @@ TA_1_1_1_Second = read_bor(fullfile(biomet_path('yyyy','TPAG','Clean/SecondStage
 
 DownShortwaveRad = read_bor(fullfile(biomet_path('yyyy','TPAG','Met'), 'DownShortwaveRad'),[],[],yearIn);
 
+WD_1_1_1 = read_bor(fullfile(biomet_path('yyyy','TPAG','Flux/Clean'),'WD_1_1_1'),[],[],yearIn);
+
 % 
 % % show data
 figure(1)
